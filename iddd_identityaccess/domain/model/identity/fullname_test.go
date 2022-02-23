@@ -3,6 +3,7 @@ package identity
 import (
 	"fmt"
 	"log"
+	"reflect"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -21,12 +22,11 @@ func TestNewFullName(t *testing.T) {
 			t.Errorf("mismatch (-want, +got):\n%s", diff)
 		}
 	})
-	t.Run("fail fistName empty", func(t *testing.T) {
+	t.Run("fail firstName empty", func(t *testing.T) {
 		firstName, lastName := "", "lastName"
 		_, err := NewFullName(firstName, lastName)
-		want := fmt.Sprintf("fullname.NewFullName(%s, %s): First name is required.", firstName, lastName)
-		if got := err.Error(); got != want {
-			log.Fatal(err)
+		if reflect.TypeOf(err) != reflect.TypeOf(&NameIsRequiredError{}) {
+			t.Errorf("err type:%v, expect type:%v", reflect.TypeOf(err), reflect.TypeOf(&TenantIdParseError{}))
 		}
 	})
 	t.Run("fail fistName is over 50 characters", func(t *testing.T) {

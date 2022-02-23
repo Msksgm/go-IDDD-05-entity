@@ -14,18 +14,20 @@ type FullName struct {
 }
 
 func NewFullName(aFirstName string, aLastName string) (_ *FullName, err error) {
-	defer ierrors.Wrap(&err, "fullname.NewFullName(%s, %s)", aFirstName, aLastName)
+	// defer ierrors.Wrap(&err, "fullname.NewFullName(%s, %s)", aFirstName, aLastName)
 	fullName := new(FullName)
+	errors := []FullNameError{}
 
 	// set firstName
 	if aFirstName == "" {
-		return nil, fmt.Errorf("First name is required.")
+		errors = append(errors, &NameIsRequiredError{FullNameArgments{firstName: aFirstName, lastName: aLastName}})
+		// return nil, &NameIsRequiredError{FullNameArgments{firstName: aFirstName, lastName: aLastName}}
 	}
 	if len(aFirstName) < 1 || 50 < len(aFirstName) {
-		return nil, fmt.Errorf("First name must be 50 characters or less.")
+		return nil, &Max50CharactersError{FullNameArgments{firstName: aFirstName, lastName: aLastName}}
 	}
 	if !regexp.MustCompile(`^[A-Z][a-z]*`).MatchString(aFirstName) {
-		return nil, fmt.Errorf("First name must be at least one character in length, starting with a capital letter.")
+		return nil, &RequiredAlphabetOnlyError{FullNameArgments{firstName: aFirstName, lastName: aLastName}}
 	}
 	fullName.firstName = aFirstName
 
@@ -85,4 +87,80 @@ func (fullName *FullName) Equal(otherFullName *FullName) bool {
 
 func (fullName *FullName) String() string {
 	return fmt.Sprintf("FullName [firstName=" + fullName.firstName + ", lastName=" + fullName.lastName + "]")
+}
+
+type FullNameArgments struct {
+	firstName string
+	lastName  string
+}
+
+type FullNameError interface {
+	getArguments() FullNameArgments
+	getError() error
+}
+
+// type FullNameParseError struct {
+// }
+
+type NameIsRequiredError struct {
+	argments FullNameArgments
+	// err      error
+}
+
+type Max50CharactersError struct {
+	argments FullNameArgments
+	// err      error
+}
+
+type RequiredAlphabetOnlyError struct {
+	argments FullNameArgments
+	// err      error
+}
+
+// func (fullNameParseError *FullNameParseError) getArguments() FullNameArgments {
+// 	return fullNameParseError.argments
+// }
+
+// func (fullNameParseError *FullNameParseError) getError() error {
+// 	return fullNameParseError.err
+// }
+
+// func (fullNameParseError *FullNameParseError) Error() string {
+// 	return fullNameParseError.err.Error()
+// }
+
+func (nameIsRequiredError *NameIsRequiredError) getArguments() FullNameArgments {
+	return nameIsRequiredError.argments
+}
+
+func (nameIsRequiredError *NameIsRequiredError) getError() error {
+	return nameIsRequiredError
+}
+
+func (nameIsRequiredError *NameIsRequiredError) Error() string {
+	return "name is requred"
+}
+
+func (max50CharactersError *Max50CharactersError) getArguments() FullNameArgments {
+	return max50CharactersError.argments
+}
+
+func (max50CharactersError *Max50CharactersError) getError() error {
+	return max50CharactersError
+}
+
+func (max50CharactersError *Max50CharactersError) Error() string {
+	return "max 50 character"
+}
+
+func (requiredAlphabetOnlyError *RequiredAlphabetOnlyError) getArguments() FullNameArgments {
+	return requiredAlphabetOnlyError.argments
+}
+
+func (requiredAlphabetOnlyError *RequiredAlphabetOnlyError) getError() error {
+	return requiredAlphabetOnlyError
+}
+
+func (requiredAlphabetOnlyError *RequiredAlphabetOnlyError) Error() string {
+	return "alphabet only"
 }
